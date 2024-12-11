@@ -25,38 +25,40 @@
     };
 
   fileSystems."/mnt/data1" =
-    { device = "/dev/disk/by-uuid/e3dbd1fe-cddc-453a-8fa1-9f57c62e62e8"; # IronWolf 
+  # SPCC_Solid_State_Disk_2024090608008777
+    { device = "/dev/disk/by-uuid/50f79118-49ba-48e2-b538-17a1f33a32b9"; 
       fsType = "xfs";
-      options = [ "nofail" ];
+      options = [ "nofail" "users" "noatime" "x-systemd.automount" ];
     };
     
   fileSystems."/mnt/data2" =
-    { device = "/dev/disk/by-uuid/afa4f2b4-52c9-4866-9613-3f087d3f199d"; # WD Red
+  # SPCC_Solid_State_Disk_2024080704000029
+    { device = "/dev/disk/by-uuid/24d34c2f-af0c-4f7e-abd1-0089c9d82ce1"; 
       fsType = "xfs";
-      options = [ "nofail" ];
+      options = [ "nofail" "users" "noatime" "x-systemd.automount" ];
     };
   
-  fileSystems."/mnt/data3" =
-    { device = "/dev/disk/by-uuid/3cfaa046-2350-4b4f-85a6-ef5200b2bf48"; # IronWolf 
-      fsType = "xfs";
-      options = [ "nofail" ];
-    };
+  # fileSystems."/mnt/data3" =
+  #   { device = "/dev/disk/by-uuid/3cfaa046-2350-4b4f-85a6-ef5200b2bf48";
+  #     fsType = "xfs";
+  #     options = [ "nofail" ];
+  #   };
   
   # fileSystems."/mnt/parity" =
-  #   { device = "/dev/disk/by-uuid/97a8b17d-ce51-4cc2-9ded-35a5e4dd7f8c"; # WD Red
+  #   { device = "/dev/disk/by-uuid/77adb496-f0cd-4889-92ef-a19a97776e17"; 
   #     fsType = "xfs";
   #     options = [ "nofail" ];
   #   };
 
-  fileSystems."/tmp/ramdisk" =
-    { fsType = "tmpfs";
+  fileSystems."/tmp/ramdisk" = { 
+      fsType = "tmpfs";
       options = [ "defaults" "size=16G" "x-gvfs-show" ];
     };
   
-  fileSystems."/storage" = 
-    { fsType = "fuse.mergerfs";
+  fileSystems."/tank" = {
+      fsType = "fuse.mergerfs";
       device = "/mnt/data*";
-      options = ["cache.files=partial" "dropcacheonclose=true" "category.create=mfs"];
+      options = [ "cache.files=partial" "dropcacheonclose=true" "category.create=mfs" "fsname=mergerfs" "minfreespace=200G" ];
     };
 
 

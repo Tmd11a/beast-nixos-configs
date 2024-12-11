@@ -4,10 +4,25 @@
 
 { config, pkgs, ... }:
 
+
+# Adding unstable channel for certain pkgs
+let
+  unstableTarball =
+    fetchTarball
+      https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz;
+in
 {
+  nixpkgs.config = {
+    packageOverrides = pkgs: {
+      unstable = import unstableTarball {
+        config = config.nixpkgs.config;
+      };
+    };
+  };
+
   imports =
     [
-      ./hardware-configuration.nix
+      ./hardware.nix
       ./fail2ban.nix
       # ./snapraid.nix
       # ./monit.nix
@@ -28,11 +43,7 @@
 
   networking.hostId = "189e25b2";
   networking.hostName = "beast"; # Define your hostname.
-  networking.extraHosts =
-  ''
-    192.168.86.100 beast
-    192.168.86.4   phoenix
-  '';
+  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Enable networking
   networking.networkmanager.enable = true;
@@ -56,29 +67,27 @@
   };
 
   # Configure keymap in X11
-  services.xserver = {
-    layout = "us";
-    xkbVariant = "";
-  };
+  # services.xserver = {
+  #   layout = "us";
+  #   xkbVariant = "";
+  # };
 
 
   #--------------- USER SECTION ------------------#
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.tyler = {
+  users.users.user1 = {
     isNormalUser = true;
-    description = "tyler";
+    description = "user1";
     extraGroups = [ "networkmanager" "wheel" "docker" "sudo" "smbgrp" ];
     packages = with pkgs; [];
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 ... tyler@phoenix"
-      "ssh-ed25519 ... tdavis@DHMVZCL3"
-      "ssh-ed25519 ...  tbag@Termius"
+        # ...
     ];
   };
 
   security.sudo.extraRules= [
-    { users = [ "tyler" ];
+    { users = [ "user1" ];
       commands = [
         { command = "ALL" ;
           options= [ "NOPASSWD" ];
@@ -99,12 +108,12 @@
       enable = true;
       plugins = [ "git" "zoxide" "fzf" "sudo" "docker-compose" "screen" ];
       custom = "$HOME/.oh-my-zsh/custom";
-      theme = "tyler";
+      theme = "user1";
     };
     shellAliases = {
+      sudo = "sudo ";
       l = "eza -alh";
       ll = "eza -lh";
-      # ls = "eza --color=tty";
       cd = "z";
       nxrs = "nixos-rebuild switch";
       nxrb = "nixos-rebuild boot";
@@ -114,7 +123,7 @@
   };
 
   # Enable automatic login for the user.
-  services.getty.autologinUser = "tyler";
+  services.getty.autologinUser = "user1";
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -123,7 +132,9 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     vim
+    busybox
     python3
+    pipx
     zsh
     zfs
     xfsprogs
@@ -133,14 +144,17 @@
     rsnapshot
     mergerfs
     screen
+    tmux
     hddtemp
     intel-gpu-tools
     pciutils
     lm_sensors
+    hdparm
     cron
     btop	
     htop
     iotop
+    sysstat
     duf 
     gdu
     nmap
@@ -153,20 +167,30 @@
     e2fsprogs 
     fzf	 
     zoxide	 
+    xorg.xauth
     bat 
+    ripgrep
     cups
     brlaser 
     neofetch
     eza
     fail2ban
     caddy
-    homepage-dashboard
     ddrescue
     viu
-    trashy
+    trash-cli
     unzip
     zip
+    bzip2
     monit
+    ookla-speedtest
+    megatools
+    libwebp 
+    stress-ng
+    reptyr
+    icdiff
+    fast-cli
+    dotbot
   ];
 
   virtualisation = {
@@ -179,6 +203,14 @@
     };
   };
 
+
+  # Some programs need SUID wrappers, can be configured further or are
+  # started in user sessions.
+  # programs.mtr.enable = true;
+  # programs.gnupg.agent = {
+  #   enable = true;
+  #   enableSSHSupport = true;
+  # };
 
   # List services that you want to enable:
 
@@ -195,7 +227,7 @@
   
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 22 80 443 139 445 631 ];
+    allowedTCPPorts = [ 22 80 443 139 445 631 6414 ];
     allowedTCPPortRanges = [
       { from = 3000; to = 32469; }
     ];
@@ -203,6 +235,30 @@
       { from = 1900; to = 58000; }
       ];
   };
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  # networking.firewall.enable = false;
+
+  # Monitor Services - monit
+  # {
+  #   imports = [
+  #     (import ./monit.nix {
+  #       filesystems = [ "/" "/nix" "/mnt/data*" ];
+  #       drives = [ "sda" "sdb" "sdc" "sdd"  ];
+  #       openPort = true;
+  #     })
+  #   ];
+  # }
+
+  # Sleep/Suspend configs
+  systemd.sleep.extraConfig = ''
+  AllowSuspend=yes
+  '';
+  powerManagement.resumeCommands = ''
+    echo "This should show up in the journal after resuming..."
+    echo "------------ Resuming ------------"
+  '';
   
 
   # This value determines the NixOS release from which the default
@@ -211,7 +267,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.11"; 
+  system.stateVersion = "24.05"; 
   nix.gc = {
     automatic = true;
     dates = "weekly";
