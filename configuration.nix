@@ -191,6 +191,7 @@ in
     icdiff
     fast-cli
     dotbot
+    handbrake
   ];
 
   virtualisation = {
