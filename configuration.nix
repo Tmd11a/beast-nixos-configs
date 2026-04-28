@@ -122,9 +122,6 @@ in
     };
   };
 
-  # Enable automatic login for the user.
-  services.getty.autologinUser = "user1";
-
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
@@ -145,8 +142,6 @@ in
     mergerfs
     screen
     tmux
-    hddtemp
-    intel-gpu-tools
     pciutils
     lm_sensors
     hdparm
@@ -158,8 +153,6 @@ in
     duf 
     gdu
     nmap
-    nvme-cli
-    tdns-cli
     tree
     wget
     curl
@@ -176,22 +169,8 @@ in
     eza
     fail2ban
     caddy
-    ddrescue
-    viu
-    trash-cli
     unzip
     zip
-    bzip2
-    monit
-    ookla-speedtest
-    megatools
-    libwebp 
-    stress-ng
-    reptyr
-    icdiff
-    fast-cli
-    dotbot
-    handbrake
   ];
 
   virtualisation = {
@@ -204,14 +183,6 @@ in
     };
   };
 
-
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
 
   # List services that you want to enable:
 
@@ -236,21 +207,7 @@ in
       { from = 1900; to = 58000; }
       ];
   };
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
 
-  # Monitor Services - monit
-  # {
-  #   imports = [
-  #     (import ./monit.nix {
-  #       filesystems = [ "/" "/nix" "/mnt/data*" ];
-  #       drives = [ "sda" "sdb" "sdc" "sdd"  ];
-  #       openPort = true;
-  #     })
-  #   ];
-  # }
 
   # Sleep/Suspend configs
   systemd.sleep.extraConfig = ''
@@ -268,7 +225,7 @@ in
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "24.05"; 
+  system.stateVersion = "25.11"; 
   nix.gc = {
     automatic = true;
     dates = "weekly";

@@ -9,20 +9,17 @@
     virtualHosts."tmdba.com".extraConfig = ''
       reverse_proxy http://localhost:3003
     '';
-    virtualHosts."monit.tmdba.com".extraConfig = ''
-      reverse_proxy http://localhost:2812
-    '';
-    virtualHosts."radarr.tmdba.com".extraConfig = ''
-      reverse_proxy http://localhost:7878
-    '';
-    virtualHosts."sonarr.tmdba.com".extraConfig = ''
-      reverse_proxy http://localhost:8989
-    '';
-    virtualHosts."port.tmdba.com".extraConfig = ''
-      reverse_proxy http://localhost:9000
-    '';
-    virtualHosts."qbt.tmdba.com".extraConfig = ''
-      reverse_proxy http://localhost:8080
-    '';
+    # virtualHosts."something.tmdba.com".extraConfig = ''
+    #   reverse_proxy http://localhost:80
+    # '';
+    # virtualHosts."another.tmdba.com".extraConfig = ''
+    #   reverse_proxy http://localhost:8080
+    # '';
+    # virtualHosts."example.tmdba.com".extraConfig = ''
+    #   reverse_proxy http://localhost:8081
+    # '';
+    # virtualHosts."woah.tmdba.com".extraConfig = ''
+    #   reverse_proxy http://localhost:8443
+    # '';  
   };
 }
