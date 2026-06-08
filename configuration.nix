@@ -1,35 +1,21 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
+#########################################
+#########################################
+#------------Personal Project-----------#
+#########################################
+#########################################
 
 { config, pkgs, ... }:
 
-
-# Adding unstable channel for certain pkgs
-let
-  unstableTarball =
-    fetchTarball
-      https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz;
-in
 {
-  nixpkgs.config = {
-    packageOverrides = pkgs: {
-      unstable = import unstableTarball {
-        config = config.nixpkgs.config;
-      };
-    };
-  };
-
   imports =
     [
       ./hardware.nix
       ./fail2ban.nix
-      # ./snapraid.nix
-      # ./monit.nix
       ./extra/caddy.nix
       ./extra/samba.nix
       ./extra/printer.nix
       ./extra/timers.nix
+      ./extra/webhook.nix
     ];
 
   # Bootloader.
@@ -41,8 +27,13 @@ in
   boot.zfs.extraPools = [ "backup" ];
   boot.zfs.forceImportRoot = false;
 
-  networking.hostId = "189e25b2";
+  networking.hostId = "189e25b2"; # Can be random string (32bit) $ head -c4 /dev/urandom | od -A none -t x4
   networking.hostName = "beast"; # Define your hostname.
+  networking.extraHosts =
+  ''
+    192.168.86.100 beast
+    192.168.86.4   host
+  '';
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Enable networking
@@ -66,28 +57,46 @@ in
     LC_TIME = "en_US.UTF-8";
   };
 
-  # Configure keymap in X11
-  # services.xserver = {
-  #   layout = "us";
-  #   xkbVariant = "";
-  # };
-
 
   #--------------- USER SECTION ------------------#
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.user1 = {
+  users.users.theuser = {
     isNormalUser = true;
-    description = "user1";
+    description = "theuser";
     extraGroups = [ "networkmanager" "wheel" "docker" "sudo" "smbgrp" ];
-    packages = with pkgs; [];
+    # Importing user pkgs
+    packages = import ./extra/added-pkgs.nix {
+      inherit pkgs;
+    };
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = [
-        # ...
+      "ssh-ed25519 ... ..."
+      "ssh-ed25519 ... ..."
+      "ssh-ed25519 ... ..."
+      "ssh-ed25519 ... ..."
+      "ssh-ed25519 ... ..."
+      "ssh-ed25519 ... ..."
+      "ssh-ed25519 ... ..."
+      "ssh-ed25519 ... ..."
     ];
   };
 
+  # services.atuin.enable = true; #Atuin adding in 26.05
+
+  services.kmscon = {
+    enable = true;
+    autologinUser = "theuser";
+    hwRender = true;
+    fonts = [ { name = "JetBrains Mono"; package = pkgs.jetbrains-mono; } ];
+    extraConfig = ''
+    font-size=8
+    '';
+    extraOptions = "--term xterm-direct";
+  };
+
+
   security.sudo.extraRules= [
-    { users = [ "user1" ];
+    { users = [ "theuser" ];
       commands = [
         { command = "ALL" ;
           options= [ "NOPASSWD" ];
@@ -106,9 +115,9 @@ in
     autosuggestions.enable = true;
     ohMyZsh = {
       enable = true;
-      plugins = [ "git" "zoxide" "fzf" "sudo" "docker-compose" "screen" ];
+      plugins = [ "git" "zoxide" "fzf" "sudo" "docker-compose" "screen" "tldr"];
       custom = "$HOME/.oh-my-zsh/custom";
-      theme = "user1";
+      theme = "theuser";
     };
     shellAliases = {
       sudo = "sudo ";
@@ -122,56 +131,81 @@ in
     };
   };
 
+
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
+  # DON'T ADD PACKAGES HERE NOR REMOVE
   environment.systemPackages = with pkgs; [
+    # Core system
+    git
     vim
-    busybox
-    python3
-    pipx
-    zsh
-    zfs
-    xfsprogs
-    docker-compose
-    samba
-    snapraid
-    rsnapshot
-    mergerfs
-    screen
-    tmux
-    pciutils
-    lm_sensors
-    hdparm
-    cron
-    btop	
-    htop
-    iotop
-    sysstat
-    duf 
-    gdu
-    nmap
-    tree
     wget
     curl
+    tmux
+    screen
+    zsh
+    python313
+
+    # Filesystems/disks
+    zfs
+    xfsprogs
+    exfatprogs
+    e2fsprogs
+    hdparm
     smartmontools
-    e2fsprogs 
-    fzf	 
-    zoxide	 
-    xorg.xauth
-    bat 
-    ripgrep
-    cups
-    brlaser 
-    neofetch
-    eza
-    fail2ban
-    caddy
-    unzip
+    nvme-cli
+    mergerfs
+
+    # Monitoring/troubleshooting
+    htop
+    btop
+    lm_sensors
+    pciutils
+    iotop
+    sysstat
+
+    # Networking
+    nmap
+
+    # Compression/archive
     zip
+    bzip2
+    pigz
+
+    # Shell
+    fzf
+    zoxide
+    fd
+    ripgrep
+    bat
+    eza
+    atuin
+    tldr
+
+    # Recovery
+    ddrescue
+
+    # Dev tooling
+    uv
+    pip
+    pipx
+    gcc
+    cargo
+
+    # Containers
+    docker-compose
   ];
+
+
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      vpl-gpu-rt
+    ];
+  };
 
   virtualisation = {
     docker = {
@@ -183,9 +217,6 @@ in
     };
   };
 
-
-  # List services that you want to enable:
-
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;
@@ -195,18 +226,19 @@ in
     settings.PermitRootLogin = "no";
   };
 
+  # Adding SSH agent startup
+  programs.ssh.startAgent = true;
+
   # Open ports in the firewall.
-  
+
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 80 443 139 445 631 6414 ];
-    allowedTCPPortRanges = [
-      { from = 3000; to = 32469; }
-    ];
-    allowedUDPPortRanges = [
-      { from = 1900; to = 58000; }
-      ];
   };
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  # networking.firewall.enable = false;
 
 
   # Sleep/Suspend configs
@@ -217,7 +249,9 @@ in
     echo "This should show up in the journal after resuming..."
     echo "------------ Resuming ------------"
   '';
-  
+
+  # Cleanup /tmp on boot
+  boot.tmp.cleanOnBoot = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -225,7 +259,7 @@ in
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "25.11"; 
+  system.stateVersion = "26.05";
   nix.gc = {
     automatic = true;
     dates = "weekly";
