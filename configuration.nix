@@ -83,18 +83,6 @@
 
   # services.atuin.enable = true; #Atuin adding in 26.05
 
-  services.kmscon = {
-    enable = true;
-    autologinUser = "theuser";
-    hwRender = true;
-    fonts = [ { name = "JetBrains Mono"; package = pkgs.jetbrains-mono; } ];
-    extraConfig = ''
-    font-size=8
-    '';
-    extraOptions = "--term xterm-direct";
-  };
-
-
   services.getty.autologinUser = "theuser";
 
 
