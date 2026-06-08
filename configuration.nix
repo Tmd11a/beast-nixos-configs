@@ -95,15 +95,7 @@
   };
 
 
-  security.sudo.extraRules= [
-    { users = [ "theuser" ];
-      commands = [
-        { command = "ALL" ;
-          options= [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
+  services.getty.autologinUser = "theuser";
 
 
   # Enable zsh and oh-my-zsh
