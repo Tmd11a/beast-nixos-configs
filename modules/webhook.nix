@@ -1,12 +1,12 @@
-{ config, pkgs, ... }:
+{ private, ... }:
 
 {
   services.webhook = {
     enable = true;
-    package = pkgs.webhook;
-    # port = ;
-    user = "theuser";
+    port = 9001;
+    user = private.userName;
     group = "users";
+    # Each hook calls a locally maintained script under /opt/webhook.
     hooks = {
       docker = {
         execute-command = "/opt/webhook/docker-hook.sh";
@@ -67,8 +67,27 @@
           };
         };
       };
+
+      # Unlike the main-branch hooks, this one accepts any branch ref.
+      homepage = {
+        execute-command = "/opt/webhook/homepage-hook.sh";
+        response-message = "Homepage repo updated";
+        pass-arguments-to-command = [
+          {
+            source = "payload";
+            name = "ref";
+          }
+        ];
+        trigger-rule = {
+          match = {
+            type = "regex";
+            regex = "^refs/heads/.+$";
+            parameter = { source = "payload"; name = "ref"; };
+          };
+        };
+      };
     };
   };
-
-  # networking.firewall.allowedTCPPorts = [ ... ];
+  # Permit incoming webhook requests on the configured port.
+  networking.firewall.allowedTCPPorts = [ 9001 ];
 }
