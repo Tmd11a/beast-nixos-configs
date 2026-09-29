@@ -1,5 +1,24 @@
-result
-result-*
+# Nix build outputs
+/result
+/result-*
+
+# Host identity and hardware
+/private.local.nix
+/hardware.nix
+/identity.local.nix
+/secrets.local.nix
+
+# Credentials and local state
+.env
+.env.*
+*.key
+*.pem
+id_rsa
+id_ed25519
+rclone.conf
+*.sops.yaml
+
+# Editor and temporary files
 *.swp
 *.log
 *.bak
